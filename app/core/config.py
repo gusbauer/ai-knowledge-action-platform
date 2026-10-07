@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     app_description: str = (
         "Backend platform for RAG, AI agents and knowledge-driven actions."
     )
+    environment: str = "development"
 
     model_config = SettingsConfigDict(
         env_file=".env",
