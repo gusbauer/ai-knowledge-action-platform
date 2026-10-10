@@ -4,3 +4,4 @@ pydantic
 pydantic-settings
 sqlalchemy[asyncio]
 psycopg[binary]
+alembic
