@@ -8,10 +8,12 @@ class Settings(BaseSettings):
         "Backend platform for RAG, AI agents and knowledge-driven actions."
     )
     environment: str = "development"
+    database_url: str
 
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
+        extra="ignore",
     )
 
 
