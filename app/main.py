@@ -1,3 +1,4 @@
+from app.api.routes.documents import router as documents_router
 from fastapi import FastAPI
 
 from app.core.config import settings
@@ -11,3 +12,4 @@ app = FastAPI(
 )
 
 app.include_router(system_router)
+app.include_router(documents_router)
