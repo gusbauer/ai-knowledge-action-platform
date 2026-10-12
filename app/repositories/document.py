@@ -8,8 +8,19 @@ class DocumentRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def create(self, filename: str) -> Document:
-        document = Document(filename=filename)
+    async def create(
+        self,
+        filename: str,
+        storage_path: str | None = None,
+        content_type: str | None = None,
+        size_bytes: int | None = None,
+    ) -> Document:
+        document = Document(
+            filename=filename,
+            storage_path=storage_path,
+            content_type=content_type,
+            size_bytes=size_bytes,
+        )
 
         self.session.add(document)
 

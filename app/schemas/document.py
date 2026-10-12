@@ -13,6 +13,9 @@ class DocumentCreate(BaseModel):
 class DocumentRead(BaseModel):
     id: int
     filename: str
+    storage_path: str | None
+    content_type: str | None
+    size_bytes: int | None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
