@@ -35,3 +35,15 @@ class DocumentRepository:
         )
 
         return list(result.scalars().all())
+    
+    async def get_by_id(
+        self,
+        document_id: int,
+    ) -> Document | None:
+        result = await self.session.execute(
+            select(Document).where(
+                Document.id == document_id
+            )
+        )
+
+        return result.scalar_one_or_none()

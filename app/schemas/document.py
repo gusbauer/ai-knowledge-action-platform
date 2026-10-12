@@ -19,3 +19,9 @@ class DocumentRead(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+    
+class DocumentContent(BaseModel):
+    id: int
+    filename: str
+    content: str
+    character_count: int

@@ -4,3 +4,4 @@ pydantic
 pydantic-settings
 sqlalchemy
 python-multipart
+pypdf
