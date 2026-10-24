@@ -7,6 +7,7 @@ from app.models.document_chunk import DocumentChunk
 class DocumentChunkRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
+    
 
     async def replace_for_document(
         self,
@@ -16,9 +17,37 @@ class DocumentChunkRepository:
         await self.session.execute(
             delete(DocumentChunk).where(
                 DocumentChunk.document_id == document_id
+                
+    
             )
         )
 
+
+    async def save_embeddings(
+        self,
+        document_id: int,
+        embeddings: list[list[float]],
+    ) -> list[DocumentChunk]:
+        chunks = await self.list_for_document(
+            document_id
+        )
+
+        if len(chunks) != len(embeddings):
+            raise ValueError(
+                "The number of embeddings does not "
+                "match the number of chunks."
+            )
+
+        for chunk, embedding in zip(
+            chunks,
+            embeddings,
+            strict=True,
+        ):
+            chunk.embedding = embedding
+
+        await self.session.commit()
+
+        return chunks
         records = [
             DocumentChunk(
                 document_id=document_id,

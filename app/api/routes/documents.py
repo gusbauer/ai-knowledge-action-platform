@@ -6,7 +6,20 @@ from fastapi import (
     UploadFile,
     status,
 )
-
+from app.schemas.document import (
+    DocumentChunkProcessResult,
+    DocumentChunkRead,
+    DocumentContent,
+    DocumentCreate,
+    DocumentEmbeddingProcessResult,
+    DocumentRead,
+)
+from app.services.embedding_service import (
+    EMBEDDING_DIMENSION,
+    EMBEDDING_MODEL_NAME,
+    EmbeddingGenerationError,
+    generate_embeddings,
+)
 from app.services.document_parser import (
     DocumentParsingError,
     extract_text,
@@ -20,6 +33,7 @@ from app.schemas.document import (
     DocumentChunkRead,
     DocumentContent,
     DocumentCreate,
+    DocumentEmbeddingProcessResult,
     DocumentRead,
 )
 from app.repositories.document_chunk import DocumentChunkRepository
@@ -313,4 +327,68 @@ async def list_document_chunks(
 
     return await chunk_repository.list_for_document(
         document_id
+    )
+@router.post(
+    "/{document_id}/embeddings",
+    response_model=DocumentEmbeddingProcessResult,
+)
+async def process_document_embeddings(
+    document_id: int,
+    session: AsyncSession = Depends(get_db),
+):
+    document_repository = DocumentRepository(
+        session
+    )
+
+    document = await document_repository.get_by_id(
+        document_id
+    )
+
+    if document is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found.",
+        )
+
+    chunk_repository = DocumentChunkRepository(
+        session
+    )
+
+    chunks = await chunk_repository.list_for_document(
+        document_id
+    )
+
+    if not chunks:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "The document has no chunks. "
+                "Process the document chunks first."
+            ),
+        )
+
+    try:
+        embeddings = await generate_embeddings(
+            [
+                chunk.content
+                for chunk in chunks
+            ]
+        )
+
+    except EmbeddingGenerationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(exc),
+        ) from exc
+
+    await chunk_repository.save_embeddings(
+        document_id,
+        embeddings,
+    )
+
+    return DocumentEmbeddingProcessResult(
+        document_id=document_id,
+        chunk_count=len(chunks),
+        embedding_dimension=EMBEDDING_DIMENSION,
+        model=EMBEDDING_MODEL_NAME,
     )

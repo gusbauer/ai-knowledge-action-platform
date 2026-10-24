@@ -6,3 +6,5 @@ sqlalchemy
 python-multipart
 pypdf
 alembic
+pgvector
+sentence-transformers

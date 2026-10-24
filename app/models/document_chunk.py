@@ -1,5 +1,6 @@
 from sqlalchemy import ForeignKey, Integer, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
+from pgvector.sqlalchemy import VECTOR
 
 from app.db.base import Base
 
@@ -41,4 +42,8 @@ class DocumentChunk(Base):
     character_count: Mapped[int] = mapped_column(
         Integer,
         nullable=False,
+    )
+    embedding: Mapped[list[float] | None] = mapped_column(
+        VECTOR(384),
+        nullable=True,
     )

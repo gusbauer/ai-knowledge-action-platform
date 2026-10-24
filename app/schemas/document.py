@@ -40,3 +40,9 @@ class DocumentChunkProcessResult(BaseModel):
     document_id: int
     chunk_count: int
     chunks: list[DocumentChunkRead]
+    
+class DocumentEmbeddingProcessResult(BaseModel):
+    document_id: int
+    chunk_count: int
+    embedding_dimension: int
+    model: str
