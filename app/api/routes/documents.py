@@ -6,6 +6,7 @@ from fastapi import (
     UploadFile,
     status,
 )
+
 from app.services.document_parser import (
     DocumentParsingError,
     extract_text,
@@ -15,15 +16,39 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.dependencies import get_db
 from app.repositories.document import DocumentRepository
 from app.schemas.document import (
+    DocumentChunkProcessResult,
+    DocumentChunkRead,
     DocumentContent,
     DocumentCreate,
     DocumentRead,
 )
+from app.repositories.document_chunk import DocumentChunkRepository
+from app.services.text_chunker import (
+    ChunkingError,
+    split_text,
+)
 from app.services.document_storage import (
     InvalidDocumentFileError,
     save_upload,
+    
 )
+from app.repositories.document_chunk import DocumentChunkRepository
 
+from app.services.text_chunker import (
+    ChunkingError,
+    split_text,
+)
+from app.schemas.document import (
+    DocumentChunkProcessResult,
+    DocumentChunkRead,
+    DocumentContent,
+    DocumentCreate,
+    DocumentRead,
+)
+from app.services.text_chunker import (
+    ChunkingError,
+    split_text,
+)
 
 router = APIRouter(
     prefix="/documents",
@@ -123,4 +148,169 @@ async def get_document_content(
         filename=document.filename,
         content=content,
         character_count=len(content),
+    )
+@router.post(
+    "/{document_id}/chunks",
+    response_model=DocumentChunkProcessResult,
+)
+async def process_document_chunks(
+    document_id: int,
+    session: AsyncSession = Depends(get_db),
+):
+    document_repository = DocumentRepository(session)
+
+    document = await document_repository.get_by_id(
+        document_id
+    )
+
+    if document is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found.",
+        )
+
+    if document.storage_path is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="The document has no uploaded file.",
+        )
+
+    try:
+        content = await extract_text(
+            document.storage_path
+        )
+
+        chunks = split_text(content)
+
+    except (DocumentParsingError, ChunkingError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=str(exc),
+        ) from exc
+
+    chunk_repository = DocumentChunkRepository(
+        session
+    )
+
+    stored_chunks = (
+        await chunk_repository.replace_for_document(
+            document.id,
+            chunks,
+        )
+    )
+
+    return DocumentChunkProcessResult(
+        document_id=document.id,
+        chunk_count=len(stored_chunks),
+        chunks=stored_chunks,
+    )
+    
+@router.get(
+    "/{document_id}/chunks",
+    response_model=list[DocumentChunkRead],
+)
+async def list_document_chunks(
+    document_id: int,
+    session: AsyncSession = Depends(get_db),
+):
+    document_repository = DocumentRepository(session)
+
+    document = await document_repository.get_by_id(
+        document_id
+    )
+
+    if document is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found.",
+        )
+
+    chunk_repository = DocumentChunkRepository(
+        session
+    )
+
+    return await chunk_repository.list_for_document(
+        document_id
+    )
+@router.post(
+    "/{document_id}/chunks",
+    response_model=DocumentChunkProcessResult,
+)
+async def process_document_chunks(
+    document_id: int,
+    session: AsyncSession = Depends(get_db),
+):
+    document_repository = DocumentRepository(session)
+
+    document = await document_repository.get_by_id(
+        document_id
+    )
+
+    if document is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found.",
+        )
+
+    if document.storage_path is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="The document has no uploaded file.",
+        )
+
+    try:
+        content = await extract_text(
+            document.storage_path
+        )
+
+        chunks = split_text(content)
+
+    except (DocumentParsingError, ChunkingError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=str(exc),
+        ) from exc
+
+    chunk_repository = DocumentChunkRepository(
+        session
+    )
+
+    stored_chunks = (
+        await chunk_repository.replace_for_document(
+            document.id,
+            chunks,
+        )
+    )
+
+    return DocumentChunkProcessResult(
+        document_id=document.id,
+        chunk_count=len(stored_chunks),
+        chunks=stored_chunks,
+    )
+@router.get(
+    "/{document_id}/chunks",
+    response_model=list[DocumentChunkRead],
+)
+async def list_document_chunks(
+    document_id: int,
+    session: AsyncSession = Depends(get_db),
+):
+    document_repository = DocumentRepository(session)
+
+    document = await document_repository.get_by_id(
+        document_id
+    )
+
+    if document is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found.",
+        )
+
+    chunk_repository = DocumentChunkRepository(
+        session
+    )
+
+    return await chunk_repository.list_for_document(
+        document_id
     )

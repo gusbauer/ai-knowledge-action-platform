@@ -25,3 +25,18 @@ class DocumentContent(BaseModel):
     filename: str
     content: str
     character_count: int
+    
+class DocumentChunkRead(BaseModel):
+    id: int
+    document_id: int
+    position: int
+    content: str
+    character_count: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class DocumentChunkProcessResult(BaseModel):
+    document_id: int
+    chunk_count: int
+    chunks: list[DocumentChunkRead]

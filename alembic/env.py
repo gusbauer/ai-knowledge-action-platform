@@ -13,6 +13,7 @@ from alembic import context
 from app.core.config import settings
 from app.db.base import Base
 from app.models.document import Document
+from app.models.document_chunk import DocumentChunk
 
 
 config = context.config
@@ -91,3 +92,5 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
+
+    
