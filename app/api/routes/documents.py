@@ -13,7 +13,11 @@ from app.schemas.document import (
     DocumentCreate,
     DocumentEmbeddingProcessResult,
     DocumentRead,
+    SemanticSearchRequest,
+    SemanticSearchResponse,
+    SemanticSearchResult,
 )
+
 from app.services.embedding_service import (
     EMBEDDING_DIMENSION,
     EMBEDDING_MODEL_NAME,
@@ -391,4 +395,53 @@ async def process_document_embeddings(
         chunk_count=len(chunks),
         embedding_dimension=EMBEDDING_DIMENSION,
         model=EMBEDDING_MODEL_NAME,
+    )
+
+@router.post(
+    "/search",
+    response_model=SemanticSearchResponse,
+)
+async def semantic_search_documents(
+    payload: SemanticSearchRequest,
+    session: AsyncSession = Depends(get_db),
+):
+    try:
+        query_embedding = (
+            await generate_embeddings(
+                [payload.query]
+            )
+        )[0]
+
+    except EmbeddingGenerationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(exc),
+        ) from exc
+
+    repository = DocumentChunkRepository(
+        session
+    )
+
+    matches = await repository.semantic_search(
+        query_embedding=query_embedding,
+        limit=payload.limit,
+    )
+
+    results = [
+        SemanticSearchResult(
+            chunk_id=chunk.id,
+            document_id=chunk.document_id,
+            position=chunk.position,
+            content=chunk.content,
+            similarity=round(
+                1.0 - distance,
+                4,
+            ),
+        )
+        for chunk, distance in matches
+    ]
+
+    return SemanticSearchResponse(
+        query=payload.query,
+        results=results,
     )

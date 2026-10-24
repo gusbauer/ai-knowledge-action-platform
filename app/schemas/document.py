@@ -46,3 +46,28 @@ class DocumentEmbeddingProcessResult(BaseModel):
     chunk_count: int
     embedding_dimension: int
     model: str
+
+class SemanticSearchRequest(BaseModel):
+    query: str = Field(
+        min_length=3,
+        max_length=500,
+    )
+
+    limit: int = Field(
+        default=5,
+        ge=1,
+        le=20,
+    )
+
+
+class SemanticSearchResult(BaseModel):
+    chunk_id: int
+    document_id: int
+    position: int
+    content: str
+    similarity: float
+
+
+class SemanticSearchResponse(BaseModel):
+    query: str
+    results: list[SemanticSearchResult]

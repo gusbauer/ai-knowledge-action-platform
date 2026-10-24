@@ -20,8 +20,33 @@ class DocumentChunkRepository:
                 
     
             )
+    
+        )
+    async def semantic_search(
+        self,
+        query_embedding: list[float],
+        limit: int = 5,
+    ) -> list[tuple[DocumentChunk, float]]:
+        distance = DocumentChunk.embedding.cosine_distance(
+            query_embedding
         )
 
+        result = await self.session.execute(
+            select(
+                DocumentChunk,
+                distance.label("distance"),
+            )
+            .where(
+                DocumentChunk.embedding.is_not(None)
+            )
+            .order_by(distance)
+            .limit(limit)
+        )
+
+        return [
+            (chunk, float(distance_value))
+            for chunk, distance_value in result.all()
+        ]
 
     async def save_embeddings(
         self,
