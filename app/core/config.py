@@ -7,8 +7,11 @@ class Settings(BaseSettings):
     app_description: str = (
         "Backend platform for RAG, AI agents and knowledge-driven actions."
     )
+
     environment: str = "development"
     database_url: str
+    ollama_base_url: str = "http://localhost:11434"
+    ollama_model: str = "qwen3.5:4b"
 
     model_config = SettingsConfigDict(
         env_file=".env",

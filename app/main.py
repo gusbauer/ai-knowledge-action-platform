@@ -1,5 +1,6 @@
 from app.api.routes.documents import router as documents_router
 from fastapi import FastAPI
+from app.api.routes.rag import router as rag_router
 
 from app.core.config import settings
 from app.api.routes.system import router as system_router
@@ -13,3 +14,4 @@ app = FastAPI(
 
 app.include_router(system_router)
 app.include_router(documents_router)
+app.include_router(rag_router)

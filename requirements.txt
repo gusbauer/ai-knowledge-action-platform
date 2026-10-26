@@ -8,3 +8,4 @@ pypdf
 alembic
 pgvector
 sentence-transformers
+httpx
