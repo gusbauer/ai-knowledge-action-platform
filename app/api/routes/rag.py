@@ -5,6 +5,13 @@ from fastapi import (
     status,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.repositories.document_chunk import (
+    DocumentChunkRepository,
+)
+from app.services.ollama_provider import (
+    LLMProviderError,
+    OllamaProvider,
+)
 
 from app.db.dependencies import get_db
 from app.schemas.rag import (
@@ -35,7 +42,12 @@ async def ask_rag(
     payload: RAGRequest,
     session: AsyncSession = Depends(get_db),
 ):
-    service = RAGService(session)
+    chunk_repository = DocumentChunkRepository(session)
+    service = RAGService(
+        chunk_retriever=chunk_repository,
+        llm=OllamaProvider(),
+    )
+
 
     try:
         answer, matches = await service.answer(

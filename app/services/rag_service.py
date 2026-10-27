@@ -1,15 +1,9 @@
-from sqlalchemy.ext.asyncio import AsyncSession
+from collections.abc import Awaitable, Callable
+from typing import Protocol
 
-from app.repositories.document_chunk import (
-    DocumentChunkRepository,
-)
-from app.services.embedding_service import (
-    generate_embeddings,
-)
-from app.services.ollama_provider import (
-    LLMProviderError,
-    OllamaProvider,
-)
+from app.models.document_chunk import DocumentChunk
+from app.services.embedding_service import generate_embeddings
+from app.services.llm_provider import LLMProvider
 
 
 SYSTEM_PROMPT = """
@@ -26,31 +20,56 @@ Rules:
 """.strip()
 
 
+INSUFFICIENT_CONTEXT_RESPONSE = (
+    "No tengo información suficiente "
+    "en los documentos disponibles "
+    "para responder a esa pregunta."
+)
+
+
+EmbeddingGenerator = Callable[
+    [list[str]],
+    Awaitable[list[list[float]]],
+]
+
+
+class ChunkRetriever(Protocol):
+    async def semantic_search(
+        self,
+        query_embedding: list[float],
+        limit: int = 5,
+    ) -> list[tuple[DocumentChunk, float]]:
+        ...
+
+
 class RAGService:
     def __init__(
         self,
-        session: AsyncSession,
+        chunk_retriever: ChunkRetriever,
+        llm: LLMProvider,
+        embedding_generator: EmbeddingGenerator = generate_embeddings,
     ) -> None:
-        self.chunk_repository = (
-            DocumentChunkRepository(session)
-        )
-
-        self.llm = OllamaProvider()
+        self.chunk_retriever = chunk_retriever
+        self.llm = llm
+        self.embedding_generator = embedding_generator
 
     async def answer(
         self,
         question: str,
         limit: int,
         min_similarity: float,
-    ) -> tuple[str, list]:
+    ) -> tuple[
+        str,
+        list[tuple[DocumentChunk, float]],
+    ]:
         query_embedding = (
-            await generate_embeddings(
+            await self.embedding_generator(
                 [question]
             )
         )[0]
 
         matches = (
-            await self.chunk_repository.semantic_search(
+            await self.chunk_retriever.semantic_search(
                 query_embedding=query_embedding,
                 limit=limit,
             )
@@ -64,9 +83,7 @@ class RAGService:
 
         if not relevant_matches:
             return (
-                "No tengo información suficiente "
-                "en los documentos disponibles "
-                "para responder a esa pregunta.",
+                INSUFFICIENT_CONTEXT_RESPONSE,
                 [],
             )
 
@@ -84,7 +101,9 @@ class RAGService:
                 )
             )
 
-        context = "\n\n".join(context_parts)
+        context = "\n\n".join(
+            context_parts
+        )
 
         user_prompt = f"""
 CONTEXT:
