@@ -22,6 +22,7 @@ from app.services.embedding_service import (
     EMBEDDING_DIMENSION,
     EMBEDDING_MODEL_NAME,
     EmbeddingGenerationError,
+    generate_document_embeddings,
     generate_embeddings,
 )
 from app.services.document_parser import (
@@ -372,12 +373,12 @@ async def process_document_embeddings(
         )
 
     try:
-        embeddings = await generate_embeddings(
-            [
-                chunk.content
-                for chunk in chunks
-            ]
-        )
+        embeddings = await generate_document_embeddings(
+    [
+        chunk.content
+        for chunk in chunks
+    ]
+)
 
     except EmbeddingGenerationError as exc:
         raise HTTPException(

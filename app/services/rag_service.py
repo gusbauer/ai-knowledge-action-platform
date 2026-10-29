@@ -1,8 +1,10 @@
 from collections.abc import Awaitable, Callable
 from typing import Protocol
-
-from app.models.document_chunk import DocumentChunk
-from app.services.embedding_service import generate_embeddings
+from app.services.embedding_service import (
+    generate_query_embeddings,
+)
+from ..models.document_chunk import DocumentChunk
+from app.services.embedding_service import generate_query_embeddings
 from app.services.llm_provider import LLMProvider
 
 
@@ -47,7 +49,7 @@ class RAGService:
         self,
         chunk_retriever: ChunkRetriever,
         llm: LLMProvider,
-        embedding_generator: EmbeddingGenerator = generate_embeddings,
+        embedding_generator: EmbeddingGenerator = generate_query_embeddings,
     ) -> None:
         self.chunk_retriever = chunk_retriever
         self.llm = llm
