@@ -1,0 +1,54 @@
+{
+  "chunks": [
+    {
+      "key": "rag_retrieval",
+      "content": "Retrieval-Augmented Generation retrieves relevant document chunks before asking a language model to generate an answer."
+    },
+    {
+      "key": "rag_grounding",
+      "content": "In a RAG system, retrieved context is provided to the language model so that the generated answer is grounded in external knowledge."
+    },
+    {
+      "key": "embeddings",
+      "content": "Embeddings are dense numerical vector representations that capture semantic information about text."
+    },
+    {
+      "key": "cosine_similarity",
+      "content": "Cosine similarity measures how similar two vectors are by comparing the angle between them."
+    },
+    {
+      "key": "postgresql",
+      "content": "PostgreSQL is a relational database management system used to persist structured application data."
+    },
+    {
+      "key": "pgvector",
+      "content": "pgvector is a PostgreSQL extension that adds vector data types and vector similarity search."
+    },
+    {
+      "key": "docker",
+      "content": "Docker packages applications and their dependencies into isolated containers."
+    },
+    {
+      "key": "docker_compose",
+      "content": "Docker Compose defines and runs multiple containerized services using a YAML configuration file."
+    }
+  ],
+  "cases": [
+    {
+      "query": "¿Cómo obtiene RAG contexto antes de que responda el modelo?",
+      "relevant_keys": ["rag_retrieval", "rag_grounding"]
+    },
+    {
+      "query": "¿Qué son los embeddings y cómo permiten representar el significado de un texto?",
+      "relevant_keys": ["embeddings", "cosine_similarity"]
+    },
+    {
+      "query": "¿Qué extensión permite almacenar vectores y hacer búsquedas vectoriales en PostgreSQL?",
+      "relevant_keys": ["pgvector", "postgresql"]
+    },
+    {
+      "query": "¿Para qué sirven Docker y Docker Compose?",
+      "relevant_keys": ["docker", "docker_compose"]
+    }
+  ]
+}
