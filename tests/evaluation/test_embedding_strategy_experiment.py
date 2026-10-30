@@ -113,6 +113,8 @@ def build_cases(
 async def test_compare_embedding_strategies(
     db_session: AsyncSession,
 ):
+
+    MAX_ALLOWED_REGRESSION = 0.05
     dataset = json.loads(
         DATASET_PATH.read_text(
             encoding="utf-8"
@@ -216,3 +218,21 @@ async def test_compare_embedding_strategies(
 
     assert baseline_report.case_count == 4
     assert candidate_report.case_count == 4
+    
+    assert (
+        candidate_report.mean_precision_at_k
+        >= baseline_report.mean_precision_at_k
+        - MAX_ALLOWED_REGRESSION
+    )
+
+    assert (
+        candidate_report.mean_recall_at_k
+        >= baseline_report.mean_recall_at_k
+        - MAX_ALLOWED_REGRESSION
+    )
+
+    assert (
+        candidate_report.mean_hit_rate_at_k
+        >= baseline_report.mean_hit_rate_at_k
+        - MAX_ALLOWED_REGRESSION
+    )
