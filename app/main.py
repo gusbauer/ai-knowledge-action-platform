@@ -2,6 +2,9 @@ from app.api.routes.documents import router as documents_router
 from fastapi import FastAPI
 from app.api.routes.rag import router as rag_router
 
+from contextlib import asynccontextmanager
+
+from app.core.redis import redis_client
 from app.core.config import settings
 from app.api.routes.system import router as system_router
 
@@ -14,10 +17,19 @@ from app.middleware.request_logging import (
 
 configure_logging()
 
+@asynccontextmanager
+async def lifespan(
+    app: FastAPI,
+):
+    yield
+
+    await redis_client.aclose()
+    
 app = FastAPI(
     title=settings.app_name,
     description=settings.app_description,
     version=settings.app_version,
+    lifespan=lifespan
 )
 
 app.add_middleware(

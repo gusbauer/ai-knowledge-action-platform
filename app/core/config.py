@@ -6,12 +6,21 @@ class Settings(BaseSettings):
     app_version: str = "0.1.0"
     app_description: str = (
         "Backend platform for RAG, AI agents and knowledge-driven actions."
+        
+    )
+    redis_url: str = (
+        "redis://localhost:6379/0"
+    )
+
+    query_embedding_cache_ttl_seconds: int = (
+        3600
     )
 
     environment: str = "development"
     database_url: str
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "qwen3.5:4b"
+    
 
     model_config = SettingsConfigDict(
         env_file=".env",

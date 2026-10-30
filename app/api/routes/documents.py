@@ -1,3 +1,6 @@
+from app.services.query_embedding_cache import (
+    generate_cached_query_embeddings,
+)
 from fastapi import (
     APIRouter,
     Depends,
@@ -6,6 +9,8 @@ from fastapi import (
     UploadFile,
     status,
 )
+
+
 from app.schemas.document import (
     DocumentChunkProcessResult,
     DocumentChunkRead,
@@ -408,9 +413,9 @@ async def semantic_search_documents(
 ):
     try:
         query_embedding = (
-            await generate_embeddings(
-                [payload.query]
-            )
+            await generate_cached_query_embeddings(
+            [payload.query]
+)
         )[0]
 
     except EmbeddingGenerationError as exc:

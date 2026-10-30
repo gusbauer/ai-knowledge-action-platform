@@ -16,6 +16,21 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  redis:
+    image: redis:8-alpine
+    container_name: ai-platform-redis
+
+    ports:
+      - "6379:6379"
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+    restart: unless-stopped
   db:
     image: pgvector/pgvector:pg16
     container_name: ai-platform-postgres
