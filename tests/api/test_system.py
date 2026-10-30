@@ -30,3 +30,26 @@ def test_health_endpoint():
 
     assert body["status"] == "ok"
     assert "environment" in body
+    
+def test_request_id_is_returned():
+    request_id = (
+        "test-request-123"
+    )
+
+    response = client.get(
+        "/health",
+        headers={
+            "X-Request-ID": request_id,
+        },
+    )
+
+    assert (
+        response.status_code == 200
+    )
+
+    assert (
+        response.headers[
+            "X-Request-ID"
+        ]
+        == request_id
+    )
