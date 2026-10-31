@@ -1,3 +1,8 @@
+from collections.abc import (
+    Awaitable,
+    Callable,
+)
+from langchain_protocol import NotRequired, TypedDict
 from langgraph.graph import (
     END,
     START,
@@ -20,6 +25,40 @@ SYSTEM_KEYWORDS = (
 )
 
 
+class AgentState(TypedDict):
+    question: str
+
+    limit: NotRequired[int]
+
+    min_similarity: NotRequired[
+        float
+    ]
+
+    normalized_question: NotRequired[
+        str
+    ]
+
+    route: NotRequired[
+        RouteName
+    ]
+
+    handled_by: NotRequired[
+        RouteName
+    ]
+
+    answer: NotRequired[str]
+
+    class AgentSourceState:
+        ...
+
+    sources: NotRequired[
+        list[AgentSourceState]
+    ]    
+    chunk_id: int
+    document_id: int
+    position: int
+    similarity: float
+    content: str
 def normalize_question(
     state: AgentState,
 ) -> dict:
@@ -69,7 +108,10 @@ def knowledge_route(
     return {
         "handled_by": "knowledge",
     }
-
+NodeHandler = Callable[
+    [AgentState],
+    dict | Awaitable[dict],
+]
 
 def system_route(
     state: AgentState,
@@ -78,65 +120,70 @@ def system_route(
         "handled_by": "system",
     }
     
-builder = StateGraph(
-    AgentState
-)
+def build_routing_graph(
+    knowledge_handler: NodeHandler = knowledge_route,
+    system_handler: NodeHandler = system_route,
+):
+    builder = StateGraph(
+        AgentState
+    )
 
+    builder.add_node(
+        "normalize_question",
+        normalize_question,
+    )
 
-builder.add_node(
-    "normalize_question",
-    normalize_question,
-)
+    builder.add_node(
+        "classify_question",
+        classify_question,
+    )
 
-builder.add_node(
-    "classify_question",
-    classify_question,
-)
+    builder.add_node(
+        "knowledge_route",
+        knowledge_handler,
+    )
 
-builder.add_node(
-    "knowledge_route",
-    knowledge_route,
-)
+    builder.add_node(
+        "system_route",
+        system_handler,
+    )
 
-builder.add_node(
-    "system_route",
-    system_route,
-)
+    builder.add_edge(
+        START,
+        "normalize_question",
+    )
 
+    builder.add_edge(
+        "normalize_question",
+        "classify_question",
+    )
 
-builder.add_edge(
-    START,
-    "normalize_question",
-)
+    builder.add_conditional_edges(
+        "classify_question",
+        select_route,
+        {
+            "knowledge": (
+                "knowledge_route"
+            ),
+            "system": (
+                "system_route"
+            ),
+        },
+    )
 
-builder.add_edge(
-    "normalize_question",
-    "classify_question",
-)
+    builder.add_edge(
+        "knowledge_route",
+        END,
+    )
 
-builder.add_conditional_edges(
-    "classify_question",
-    select_route,
-    {
-        "knowledge": (
-            "knowledge_route"
-        ),
-        "system": (
-            "system_route"
-        ),
-    },
-)
+    builder.add_edge(
+        "system_route",
+        END,
+    )
 
-builder.add_edge(
-    "knowledge_route",
-    END,
-)
+    return builder.compile()
 
-builder.add_edge(
-    "system_route",
-    END,
-)
 
 routing_graph = (
-    builder.compile()
+    build_routing_graph()
 )
