@@ -2,7 +2,7 @@ from collections.abc import (
     Awaitable,
     Callable,
 )
-from langchain_protocol import NotRequired, TypedDict
+
 from langgraph.graph import (
     END,
     START,
@@ -25,40 +25,6 @@ SYSTEM_KEYWORDS = (
 )
 
 
-class AgentState(TypedDict):
-    question: str
-
-    limit: NotRequired[int]
-
-    min_similarity: NotRequired[
-        float
-    ]
-
-    normalized_question: NotRequired[
-        str
-    ]
-
-    route: NotRequired[
-        RouteName
-    ]
-
-    handled_by: NotRequired[
-        RouteName
-    ]
-
-    answer: NotRequired[str]
-
-    class AgentSourceState:
-        ...
-
-    sources: NotRequired[
-        list[AgentSourceState]
-    ]    
-    chunk_id: int
-    document_id: int
-    position: int
-    similarity: float
-    content: str
 def normalize_question(
     state: AgentState,
 ) -> dict:
@@ -87,7 +53,6 @@ def classify_question(
         for keyword in SYSTEM_KEYWORDS
     ):
         route = "system"
-
     else:
         route = "knowledge"
 
@@ -108,10 +73,7 @@ def knowledge_route(
     return {
         "handled_by": "knowledge",
     }
-NodeHandler = Callable[
-    [AgentState],
-    dict | Awaitable[dict],
-]
+
 
 def system_route(
     state: AgentState,
@@ -119,7 +81,14 @@ def system_route(
     return {
         "handled_by": "system",
     }
-    
+
+
+NodeHandler = Callable[
+    [AgentState],
+    dict | Awaitable[dict],
+]
+
+
 def build_routing_graph(
     knowledge_handler: NodeHandler = knowledge_route,
     system_handler: NodeHandler = system_route,

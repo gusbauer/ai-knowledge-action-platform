@@ -45,3 +45,5 @@ class AgentState(TypedDict):
     sources: NotRequired[
         list[AgentSourceState]
     ]
+
+    tool_used: NotRequired[str]

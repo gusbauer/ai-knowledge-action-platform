@@ -7,6 +7,9 @@ from app.agents.state import (
     AgentSourceState,
     AgentState,
 )
+from app.agents.tools.system_info import (
+    get_system_info,
+)
 from app.models.document_chunk import (
     DocumentChunk,
 )
@@ -84,15 +87,30 @@ def build_agent_graph(
             "handled_by": "knowledge",
         }
 
-    def system_handler(
+    async def system_handler(
         state: AgentState,
     ) -> dict:
+        system_info = (
+            await get_system_info.ainvoke(
+                {}
+            )
+        )
+
+        answer = (
+            f"{system_info['app_name']} "
+            f"v{system_info['version']} "
+            f"está ejecutándose en el "
+            f"entorno "
+            f"{system_info['environment']}."
+        )
+
         return {
-            "answer": (
-                "System route selected."
-            ),
+            "answer": answer,
             "sources": [],
             "handled_by": "system",
+            "tool_used": (
+                "get_system_info"
+            ),
         }
 
     return build_routing_graph(

@@ -127,4 +127,25 @@ async def test_system_route_does_not_use_rag():
         == "system"
     )
 
+    assert (
+        "AI Knowledge & Action Platform"
+        in result["answer"]
+    )
+
+    assert (
+        "0.1.0"
+        in result["answer"]
+    )
+
+    assert (
+        result["sources"]
+        == []
+    )
+
+    assert (
+        result["tool_used"]
+        == "get_system_info"
+    )
+
     assert rag_service.calls == []
+    
