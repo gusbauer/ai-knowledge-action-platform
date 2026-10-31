@@ -4,6 +4,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     app_name: str = "AI Knowledge & Action Platform"
     app_version: str = "0.1.0"
+    rag_rate_limit_requests: int = 10
+    rag_rate_limit_window_seconds: int = 60
     app_description: str = (
         "Backend platform for RAG, AI agents and knowledge-driven actions."
         

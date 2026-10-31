@@ -2,8 +2,15 @@ from fastapi import (
     APIRouter,
     Depends,
     HTTPException,
+    Request,
+    Response,
     status,
 )
+
+from app.services.rate_limiter import (
+    check_rag_rate_limit,
+)
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.repositories.document_chunk import (
     DocumentChunkRepository,
@@ -40,8 +47,56 @@ router = APIRouter(
 )
 async def ask_rag(
     payload: RAGRequest,
+    request: Request,
+    response: Response,
     session: AsyncSession = Depends(get_db),
 ):
+
+    client_identifier = (
+        request.client.host
+        if request.client
+        else "unknown"
+    )
+
+    decision = await check_rag_rate_limit(
+        client_identifier
+    )
+
+    rate_limit_headers = {
+        "X-RateLimit-Limit": str(
+            decision.limit
+        ),
+        "X-RateLimit-Remaining": str(
+            decision.remaining
+        ),
+        "X-RateLimit-Reset": str(
+            decision.retry_after
+        ),
+    }
+
+    if not decision.allowed:
+        raise HTTPException(
+            status_code=(
+                status.HTTP_429_TOO_MANY_REQUESTS
+            ),
+            detail=(
+                "RAG request rate limit exceeded."
+            ),
+            headers={
+                **rate_limit_headers,
+                "Retry-After": str(
+                    decision.retry_after
+                ),
+            },
+        )
+
+    for header, value in (
+        rate_limit_headers.items()
+    ):
+        response.headers[
+            header
+        ] = value
+    # Rate limiting
     chunk_repository = DocumentChunkRepository(session)
     service = RAGService(
         chunk_retriever=chunk_repository,
