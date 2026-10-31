@@ -4,6 +4,9 @@ import logging
 
 from redis.exceptions import RedisError
 
+from app.core.metrics import (
+    QUERY_EMBEDDING_CACHE_EVENTS,
+)
 from app.core.config import settings
 from app.core.redis import redis_client
 from app.services.embedding_service import (
@@ -50,6 +53,9 @@ async def _get_cached_embedding(
         return None
 
     if cached is None:
+        QUERY_EMBEDDING_CACHE_EVENTS.labels(
+            event="miss"
+        ).inc()
         return None
 
     return [

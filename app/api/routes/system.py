@@ -7,6 +7,11 @@ from redis.exceptions import RedisError
 
 from app.core.redis import redis_client
 
+from fastapi import Response
+from prometheus_client import (
+    CONTENT_TYPE_LATEST,
+    generate_latest,
+)
 router = APIRouter(tags=["System"])
 
 
@@ -45,3 +50,17 @@ async def cache_health_check():
         "cache": "connected",
         "check": bool(result),
     }
+
+@router.get(
+    "/metrics",
+    include_in_schema=False,
+)
+def metrics():
+    return Response(
+        content=generate_latest(),
+        headers={
+            "Content-Type": (
+                CONTENT_TYPE_LATEST
+            )
+        },
+    )

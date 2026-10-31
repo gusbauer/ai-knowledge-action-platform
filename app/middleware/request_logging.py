@@ -2,6 +2,10 @@ import logging
 import time
 from uuid import uuid4
 
+from app.core.metrics import (
+    HTTP_REQUEST_DURATION_SECONDS,
+    HTTP_REQUESTS,
+)
 from starlette.middleware.base import (
     BaseHTTPMiddleware,
 )
@@ -70,7 +74,31 @@ class RequestLoggingMiddleware(
         response.headers[
             "X-Request-ID"
         ] = request_id
+        route = request.scope.get(
+            "route"
+        )
 
+        metric_path = getattr(
+            route,
+            "path",
+            request.url.path,
+        )
+
+        HTTP_REQUESTS.labels(
+            method=request.method,
+            path=metric_path,
+            status_code=str(
+                response.status_code
+            ),
+        ).inc()
+
+        HTTP_REQUEST_DURATION_SECONDS.labels(
+            method=request.method,
+            path=metric_path,
+        ).observe(
+            duration_ms / 1000
+        )
+        
         logger.info(
             "request_completed",
             extra={

@@ -10,3 +10,4 @@ pgvector
 sentence-transformers
 httpx
 redis
+prometheus-client

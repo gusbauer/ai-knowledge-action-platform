@@ -2,6 +2,9 @@ import hashlib
 import logging
 from dataclasses import dataclass
 
+from app.core.metrics import (
+    RATE_LIMIT_DECISIONS,
+)
 from redis.exceptions import RedisError
 
 from app.core.config import settings
@@ -82,7 +85,9 @@ async def check_rag_rate_limit(
         logger.exception(
             "rate_limit_check_failed"
         )
-
+        RATE_LIMIT_DECISIONS.labels(
+            decision="fail_open"
+        ).inc()
         return RateLimitDecision(
             allowed=True,
             limit=limit,
@@ -98,7 +103,15 @@ async def check_rag_rate_limit(
         limit - current,
         0,
     )
+    decision_name = (
+        "allowed"
+        if current <= limit
+        else "blocked"
+    )
 
+    RATE_LIMIT_DECISIONS.labels(
+        decision=decision_name
+    ).inc()
     return RateLimitDecision(
         allowed=current <= limit,
         limit=limit,
