@@ -1,3 +1,13 @@
+from fastapi import Depends
+from fastapi.responses import JSONResponse
+from redis.exceptions import RedisError
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.redis import redis_client
+from app.db.dependencies import get_db
+
 from fastapi import APIRouter
 
 from app.core.config import settings
@@ -64,3 +74,48 @@ def metrics():
             )
         },
     )
+    
+@router.get(
+    "/health/live"
+)
+async def liveness():
+    return {
+        "status": "alive",
+    }
+    
+@router.get(
+    "/health/ready"
+)
+async def readiness(
+    session: AsyncSession = Depends(
+        get_db
+    ),
+):
+    try:
+        await session.execute(
+            text("SELECT 1")
+        )
+
+    except SQLAlchemyError:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "not_ready",
+                "database": "unavailable",
+                "cache": "unknown",
+            },
+        )
+
+    cache_status = "connected"
+
+    try:
+        await redis_client.ping()
+
+    except RedisError:
+        cache_status = "degraded"
+
+    return {
+        "status": "ready",
+        "database": "connected",
+        "cache": cache_status,
+    }

@@ -1,10 +1,12 @@
 import httpx
 
 from app.core.config import settings
+from app.core.errors import ExternalServiceError
 
-
-class LLMProviderError(RuntimeError):
-    pass
+class LLMProviderError(
+    ExternalServiceError
+):
+    code = "llm_provider_unavailable"
 
 
 class OllamaProvider:

@@ -76,3 +76,16 @@ def test_metrics_endpoint():
         "ai_platform_http_request_duration_seconds"
         in response.text
     )
+    
+def test_liveness():
+    response = client.get(
+        "/health/live"
+    )
+
+    assert (
+        response.status_code == 200
+    )
+
+    assert response.json() == {
+        "status": "alive",
+    }

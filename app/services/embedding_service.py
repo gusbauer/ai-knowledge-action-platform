@@ -3,7 +3,7 @@ from functools import lru_cache
 from fastapi.concurrency import run_in_threadpool
 from sentence_transformers import SentenceTransformer
 
-
+from app.core.errors import ExternalServiceError
 EMBEDDING_MODEL_NAME = (
     "sentence-transformers/"
     "paraphrase-multilingual-MiniLM-L12-v2"
@@ -12,8 +12,10 @@ EMBEDDING_MODEL_NAME = (
 EMBEDDING_DIMENSION = 384
 
 
-class EmbeddingGenerationError(RuntimeError):
-    pass
+class EmbeddingGenerationError(
+    ExternalServiceError
+):
+    code = "embedding_generation_failed"
 
 
 @lru_cache(maxsize=1)

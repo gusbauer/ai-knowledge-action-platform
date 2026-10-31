@@ -4,6 +4,9 @@ from app.api.routes.rag import router as rag_router
 
 from contextlib import asynccontextmanager
 
+from app.core.error_handlers import (
+    register_exception_handlers,
+)
 from app.core.redis import redis_client
 from app.core.config import settings
 from app.api.routes.system import router as system_router
@@ -31,7 +34,7 @@ app = FastAPI(
     version=settings.app_version,
     lifespan=lifespan
 )
-
+register_exception_handlers(app)
 app.add_middleware(
     RequestLoggingMiddleware
 )
