@@ -2,7 +2,10 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
 )
-
+from app.services import rag_service
+from app.services.agent_router import (
+    LLMQuestionRouter,
+)
 from app.agents.agent_graph import (
     build_agent_graph,
 )
@@ -32,6 +35,11 @@ def get_agent_graph(
         llm=OllamaProvider(),
     )
 
+    router = LLMQuestionRouter(
+    provider=OllamaProvider()
+)
+
     return build_agent_graph(
-        rag_service
-    )
+    rag_service=rag_service,
+    router=router,
+)

@@ -90,8 +90,15 @@ NodeHandler = Callable[
 
 
 def build_routing_graph(
-    knowledge_handler: NodeHandler = knowledge_route,
-    system_handler: NodeHandler = system_route,
+    knowledge_handler: NodeHandler = (
+        knowledge_route
+    ),
+    system_handler: NodeHandler = (
+        system_route
+    ),
+    classifier_handler: NodeHandler = (
+        classify_question
+    ),
 ):
     builder = StateGraph(
         AgentState
@@ -104,7 +111,7 @@ def build_routing_graph(
 
     builder.add_node(
         "classify_question",
-        classify_question,
+        classifier_handler,
     )
 
     builder.add_node(

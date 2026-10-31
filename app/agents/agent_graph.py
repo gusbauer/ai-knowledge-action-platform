@@ -2,6 +2,7 @@ from typing import Protocol
 
 from app.agents.routing_graph import (
     build_routing_graph,
+    classify_question,
 )
 from app.agents.state import (
     AgentSourceState,
@@ -33,9 +34,66 @@ class RAGAnswerService(Protocol):
         ...
 
 
+class QuestionRouter(Protocol):
+    async def classify(
+        self,
+        question: str,
+    ):
+        ...
+
+
 def build_agent_graph(
     rag_service: RAGAnswerService,
+    router: QuestionRouter | None = None,
 ):
+    async def classifier_handler(
+        state: AgentState,
+    ) -> dict:
+        if router is None:
+            fallback = classify_question(
+                state
+            )
+
+            return {
+                **fallback,
+                "routing_strategy": (
+                    "deterministic"
+                ),
+                "routing_reason": (
+                    "No LLM router configured."
+                ),
+            }
+
+        try:
+            decision = await router.classify(
+                state[
+                    "normalized_question"
+                ]
+            )
+
+            return {
+                "route": decision.route,
+                "routing_strategy": "llm",
+                "routing_reason": (
+                    decision.reason
+                ),
+            }
+
+        except Exception:
+            fallback = classify_question(
+                state
+            )
+
+            return {
+                **fallback,
+                "routing_strategy": (
+                    "deterministic_fallback"
+                ),
+                "routing_reason": (
+                    "LLM router unavailable."
+                ),
+            }
+
     async def knowledge_handler(
         state: AgentState,
     ) -> dict:
@@ -119,5 +177,8 @@ def build_agent_graph(
         ),
         system_handler=(
             system_handler
+        ),
+        classifier_handler=(
+            classifier_handler
         ),
     )

@@ -21,7 +21,14 @@ class AgentSourceState(TypedDict):
 
 class AgentState(TypedDict):
     question: str
+    
+    routing_strategy: NotRequired[
+    str
+]
 
+    routing_reason: NotRequired[
+    str
+]
     limit: NotRequired[int]
 
     min_similarity: NotRequired[

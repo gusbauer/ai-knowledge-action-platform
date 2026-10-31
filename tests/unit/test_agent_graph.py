@@ -149,3 +149,39 @@ async def test_system_route_does_not_use_rag():
 
     assert rag_service.calls == []
     
+class FailingRouter:
+    async def classify(
+        self,
+        question: str,
+    ):
+        raise RuntimeError(
+            "Router unavailable"
+        )
+
+@pytest.mark.asyncio
+async def test_agent_falls_back_when_router_fails():
+    rag_service = FakeRAGService()
+
+    graph = build_agent_graph(
+        rag_service=rag_service,
+        router=FailingRouter(),
+    )
+
+    result = await graph.ainvoke(
+        {
+            "question": (
+                "¿Qué versión tiene "
+                "el sistema?"
+            ),
+        }
+    )
+
+    assert (
+        result["route"]
+        == "system"
+    )
+
+    assert (
+        result["routing_strategy"]
+        == "deterministic_fallback"
+    )

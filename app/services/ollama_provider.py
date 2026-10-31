@@ -1,5 +1,4 @@
 import httpx
-
 from app.core.config import settings
 from app.core.errors import ExternalServiceError
 
@@ -14,6 +13,66 @@ class OllamaProvider:
         self.base_url = settings.ollama_base_url
         self.model = settings.ollama_model
 
+    async def generate_structured(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        schema: dict,
+    ) -> str:
+        payload = {
+            "model": self.model,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": system_prompt,
+                },
+                {
+                    "role": "user",
+                    "content": user_prompt,
+                },
+            ],
+            "stream": False,
+            "format": schema,
+            "options": {
+                "temperature": 0,
+            },
+        }
+
+        try:
+            async with httpx.AsyncClient(
+                timeout=120.0
+            ) as client:
+                response = await client.post(
+                    f"{self.base_url}/api/chat",
+                    json=payload,
+                )
+
+                response.raise_for_status()
+
+        except httpx.HTTPError as exc:
+            raise LLMProviderError(
+                "Ollama structured response "
+                "could not be generated."
+            ) from exc
+
+        data = response.json()
+
+        try:
+            return (
+                data["message"]["content"]
+                .strip()
+            )
+
+        except (
+            KeyError,
+            TypeError,
+            AttributeError,
+        ) as exc:
+            raise LLMProviderError(
+                "Ollama returned an invalid "
+                "structured response."
+            ) from exc
+            
     async def generate(
         self,
         system_prompt: str,
