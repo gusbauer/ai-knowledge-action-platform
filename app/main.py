@@ -2,6 +2,9 @@ from app.api.routes.documents import router as documents_router
 from fastapi import FastAPI
 from app.api.routes.rag import router as rag_router
 
+from app.api.routes.agent import (
+    router as agent_router,
+)
 from contextlib import asynccontextmanager
 
 from app.core.error_handlers import (
@@ -42,3 +45,6 @@ app.add_middleware(
 app.include_router(system_router)
 app.include_router(documents_router)
 app.include_router(rag_router)
+app.include_router(
+    agent_router
+)
