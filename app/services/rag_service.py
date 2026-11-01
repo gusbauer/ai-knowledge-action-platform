@@ -1,10 +1,12 @@
 from collections.abc import Awaitable, Callable
 from typing import Protocol
+
+from app.services.llm_provider import LLMProvider
 from app.services.query_embedding_cache import (
     generate_cached_query_embeddings,
 )
+
 from ..models.document_chunk import DocumentChunk
-from app.services.llm_provider import LLMProvider
 
 
 SYSTEM_PROMPT = """
@@ -54,6 +56,36 @@ class RAGService:
         self.llm = llm
         self.embedding_generator = embedding_generator
 
+    async def retrieve(
+        self,
+        question: str,
+        limit: int,
+        min_similarity: float,
+    ):
+        query_embedding = (
+            await self.embedding_generator(
+                [question]
+            )
+        )[0]
+
+        matches = (
+            await self.chunk_retriever
+            .semantic_search(
+                query_embedding=(
+                    query_embedding
+                ),
+                limit=limit,
+            )
+        )
+
+        return [
+            (chunk, distance)
+            for chunk, distance in matches
+            if (
+                1.0 - distance
+            ) >= min_similarity
+        ]
+
     async def answer(
         self,
         question: str,
@@ -63,24 +95,15 @@ class RAGService:
         str,
         list[tuple[DocumentChunk, float]],
     ]:
-        query_embedding = (
-            await self.embedding_generator(
-                [question]
-            )
-        )[0]
-
-        matches = (
-            await self.chunk_retriever.semantic_search(
-                query_embedding=query_embedding,
+        relevant_matches = (
+            await self.retrieve(
+                question=question,
                 limit=limit,
+                min_similarity=(
+                    min_similarity
+                ),
             )
         )
-
-        relevant_matches = [
-            (chunk, distance)
-            for chunk, distance in matches
-            if (1.0 - distance) >= min_similarity
-        ]
 
         if not relevant_matches:
             return (

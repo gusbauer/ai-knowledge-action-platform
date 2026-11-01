@@ -12,3 +12,5 @@ httpx
 redis
 prometheus-client
 langgraph==1.2.19
+langchain-ollama==1.1.0
+AGENT_MODE=tool_calling
