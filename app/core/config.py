@@ -1,4 +1,8 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import (
+    BaseSettings,
+    SettingsConfigDict,
+)
+
 
 class Settings(BaseSettings):
     app_name: str = (
@@ -41,6 +45,22 @@ class Settings(BaseSettings):
 
     agent_mode: str = "tool_calling"
 
+    langsmith_tracing: bool = False
+
+    langsmith_project: str = (
+        "ai-knowledge-action-platform"
+    )
+
+    langsmith_api_key: str | None = None
+
+    model_config = (
+        SettingsConfigDict(
+            env_file=".env",
+            env_file_encoding="utf-8",
+            extra="ignore",
+        )
+    )
+
     @property
     def checkpoint_database_url(
         self,
@@ -50,14 +70,6 @@ class Settings(BaseSettings):
             "postgresql://",
             1,
         )
-
-    model_config = (
-        SettingsConfigDict(
-            env_file=".env",
-            env_file_encoding="utf-8",
-            extra="ignore",
-        )
-    )
 
 
 settings = Settings()

@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from fastapi import (
     APIRouter,
     Depends,
@@ -9,18 +11,12 @@ from fastapi import (
 from langgraph.types import (
     Command,
 )
-from pydantic import Field
-from pydantic.v1 import BaseModel
-from app.schemas.agent import (
-    AgentRequest,
-    AgentResponse,
-    AgentResumeRequest,
-)
-from uuid import uuid4
+from pydantic import BaseModel, Field
 
 from app.agents.dependencies import (
     get_agent_graph,
 )
+from app.core.config import settings
 from app.schemas.agent import (
     AgentRequest,
     AgentResponse,
@@ -28,6 +24,20 @@ from app.schemas.agent import (
 from app.services.rate_limiter import (
     check_rag_rate_limit,
 )
+
+
+class AgentResumeRequest(BaseModel):
+    thread_id: str = Field(
+        min_length=1,
+        max_length=128,
+    )
+
+    approved: bool
+
+    note: str | None = Field(
+        default=None,
+        max_length=500,
+    )
 
 
 router = APIRouter(
@@ -88,23 +98,38 @@ async def ask_agent(
         response.headers[key] = value
 
     thread_id = (
-    payload.thread_id
-    or uuid4().hex
-)
-    result = await graph.ainvoke(
-    {
-        "question": payload.question,
-        "limit": payload.limit,
-        "min_similarity": (
-            payload.min_similarity
-        ),
-    },
-    config={
+        payload.thread_id
+        or uuid4().hex
+    )
+
+    config = {
         "configurable": {
-        "thread_id": thread_id,
-        }
-    },
-)
+            "thread_id": thread_id,
+        },
+        "run_name": "agent_request",
+        "tags": [
+            "agent",
+            settings.agent_mode,
+        ],
+        "metadata": {
+            "thread_id": thread_id,
+            "agent_mode": (
+                settings.agent_mode
+            ),
+        },
+    }
+
+    result = await graph.ainvoke(
+        {
+            "question": payload.question,
+            "limit": payload.limit,
+            "min_similarity": (
+                payload.min_similarity
+            ),
+        },
+        config=config,
+    )
+
     interrupts = result.get(
         "__interrupt__",
         (),
@@ -114,31 +139,24 @@ async def ask_agent(
         pending = interrupts[0]
 
         return AgentResponse(
-    thread_id=thread_id,
-    status="completed",
-    question=payload.question,
-    answer=result["answer"],
-    route=result["route"],
-    handled_by=result[
-        "handled_by"
-    ],
-    tool_used=result.get(
-        "tool_used"
-    ),
-    sources=result.get(
-        "sources",
-        [],
-    ),
-)
+            thread_id=thread_id,
+            status="interrupted",
+            question=payload.question,
+            interrupt={
+                "id": pending.id,
+                "value": pending.value,
+            },
+        )
 
     return AgentResponse(
-        question=payload.question,
-        answer=result["answer"],
-        route=result["route"],
-        handled_by=result[
-            "handled_by"
-        ],
         thread_id=thread_id,
+        status="completed",
+        question=payload.question,
+        answer=result.get("answer"),
+        route=result.get("route"),
+        handled_by=result.get(
+            "handled_by"
+        ),
         tool_used=result.get(
             "tool_used"
         ),
@@ -147,7 +165,8 @@ async def ask_agent(
             [],
         ),
     )
-    
+
+
 @router.post(
     "/resume",
     response_model=AgentResponse,
@@ -161,7 +180,20 @@ async def resume_agent(
             "thread_id": (
                 payload.thread_id
             ),
-        }
+        },
+        "run_name": "agent_resume",
+        "tags": [
+            "agent",
+            "human_in_the_loop",
+        ],
+        "metadata": {
+            "thread_id": (
+                payload.thread_id
+            ),
+            "agent_mode": (
+                settings.agent_mode
+            ),
+        },
     }
 
     result = await graph.ainvoke(
@@ -220,17 +252,4 @@ async def resume_agent(
             "sources",
             [],
         ),
-    )
-    
-class AgentResumeRequest(BaseModel):
-    thread_id: str = Field(
-        min_length=1,
-        max_length=128,
-    )
-
-    approved: bool
-
-    note: str | None = Field(
-        default=None,
-        max_length=500,
     )

@@ -1,5 +1,6 @@
 from collections.abc import Awaitable, Callable
 from typing import Protocol
+from langsmith import traceable
 
 from app.services.llm_provider import LLMProvider
 from app.services.query_embedding_cache import (
@@ -55,7 +56,9 @@ class RAGService:
         self.chunk_retriever = chunk_retriever
         self.llm = llm
         self.embedding_generator = embedding_generator
-
+    @traceable(
+    name="rag_retrieve"
+)
     async def retrieve(
         self,
         question: str,
@@ -85,7 +88,9 @@ class RAGService:
                 1.0 - distance
             ) >= min_similarity
         ]
-
+    @traceable(
+    name="rag_answer"
+)
     async def answer(
         self,
         question: str,

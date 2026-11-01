@@ -5,6 +5,9 @@ from langgraph.checkpoint.postgres.aio import (
     AsyncPostgresSaver,
 )
 
+from app.core.tracing import (
+    configure_ai_tracing,
+)
 from app.api.routes.agent import (
     router as agent_router,
 )
@@ -32,7 +35,8 @@ from app.middleware.request_logging import (
 
 configure_logging()
 
-
+configure_logging()
+configure_ai_tracing()
 @asynccontextmanager
 async def lifespan(
     app: FastAPI,
