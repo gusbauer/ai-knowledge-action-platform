@@ -5,14 +5,15 @@ from sqlalchemy.ext.asyncio import (
 from langchain_ollama import (
     ChatOllama,
 )
-
+from fastapi import (
+    Depends,
+    Request,
+)
 from app.agents.tool_calling_graph import (
     build_tool_calling_graph,
 )
 from app.core.config import settings
-from langgraph.checkpoint.memory import (
-    InMemorySaver,
-)
+
 from app.services.agent_router import (
     LLMQuestionRouter,
 )
@@ -32,10 +33,15 @@ from app.services.rag_service import (
 
 
 def get_agent_graph(
+    request: Request,
     session: AsyncSession = Depends(
         get_db
     ),
 ):
+    checkpointer = (
+        request.app.state
+        .agent_checkpointer
+    )
     repository = DocumentChunkRepository(
         session
     )
@@ -45,9 +51,6 @@ def get_agent_graph(
         llm=OllamaProvider(),
     )
 
-    agent_checkpointer = (
-        InMemorySaver()
-    )
 
     if (
         settings.agent_mode
@@ -65,7 +68,7 @@ def get_agent_graph(
             rag_service=rag_service,
             model=model,
             checkpointer=(
-                agent_checkpointer
+                checkpointer
             ),
         )
         
@@ -77,6 +80,6 @@ def get_agent_graph(
         rag_service=rag_service,
         router=router,
         checkpointer=(
-            agent_checkpointer
+            checkpointer
         ),
     )

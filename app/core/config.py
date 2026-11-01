@@ -1,32 +1,62 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
-    app_name: str = "AI Knowledge & Action Platform"
+    app_name: str = (
+        "AI Knowledge & Action Platform"
+    )
+
     app_version: str = "0.1.0"
+
     app_description: str = (
-        "Backend platform for RAG, AI agents and knowledge-driven actions."
+        "Backend platform for RAG, "
+        "AI agents and "
+        "knowledge-driven actions."
     )
 
     environment: str = "development"
 
     database_url: str
 
-    ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = "qwen3.5:4b"
+    ollama_base_url: str = (
+        "http://localhost:11434"
+    )
 
-    redis_url: str = "redis://localhost:6379/0"
+    ollama_model: str = (
+        "qwen3.5:4b"
+    )
 
-    query_embedding_cache_ttl_seconds: int = 3600
+    redis_url: str = (
+        "redis://localhost:6379/0"
+    )
+
+    query_embedding_cache_ttl_seconds: int = (
+        3600
+    )
 
     rag_rate_limit_requests: int = 10
-    rag_rate_limit_window_seconds: int = 60
+
+    rag_rate_limit_window_seconds: int = (
+        60
+    )
 
     agent_mode: str = "tool_calling"
 
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="ignore",
+    @property
+    def checkpoint_database_url(
+        self,
+    ) -> str:
+        return self.database_url.replace(
+            "postgresql+psycopg://",
+            "postgresql://",
+            1,
+        )
+
+    model_config = (
+        SettingsConfigDict(
+            env_file=".env",
+            env_file_encoding="utf-8",
+            extra="ignore",
+        )
     )
 
 
