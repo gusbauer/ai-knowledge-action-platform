@@ -6,7 +6,16 @@ from fastapi import (
     Response,
     status,
 )
-
+from langgraph.types import (
+    Command,
+)
+from pydantic import Field
+from pydantic.v1 import BaseModel
+from app.schemas.agent import (
+    AgentRequest,
+    AgentResponse,
+    AgentResumeRequest,
+)
 from uuid import uuid4
 
 from app.agents.dependencies import (
@@ -96,6 +105,31 @@ async def ask_agent(
         }
     },
 )
+    interrupts = result.get(
+        "__interrupt__",
+        (),
+    )
+
+    if interrupts:
+        pending = interrupts[0]
+
+        return AgentResponse(
+    thread_id=thread_id,
+    status="completed",
+    question=payload.question,
+    answer=result["answer"],
+    route=result["route"],
+    handled_by=result[
+        "handled_by"
+    ],
+    tool_used=result.get(
+        "tool_used"
+    ),
+    sources=result.get(
+        "sources",
+        [],
+    ),
+)
 
     return AgentResponse(
         question=payload.question,
@@ -112,4 +146,91 @@ async def ask_agent(
             "sources",
             [],
         ),
+    )
+    
+@router.post(
+    "/resume",
+    response_model=AgentResponse,
+)
+async def resume_agent(
+    payload: AgentResumeRequest,
+    graph=Depends(get_agent_graph),
+):
+    config = {
+        "configurable": {
+            "thread_id": (
+                payload.thread_id
+            ),
+        }
+    }
+
+    result = await graph.ainvoke(
+        Command(
+            resume={
+                "approved": (
+                    payload.approved
+                ),
+                "note": payload.note,
+            }
+        ),
+        config=config,
+    )
+
+    interrupts = result.get(
+        "__interrupt__",
+        (),
+    )
+
+    if interrupts:
+        pending = interrupts[0]
+
+        return AgentResponse(
+            thread_id=(
+                payload.thread_id
+            ),
+            status="interrupted",
+            question=result.get(
+                "question"
+            ),
+            interrupt={
+                "id": pending.id,
+                "value": pending.value,
+            },
+        )
+
+    return AgentResponse(
+        thread_id=payload.thread_id,
+        status="completed",
+        question=result.get(
+            "question"
+        ),
+        answer=result.get(
+            "answer"
+        ),
+        route=result.get(
+            "route"
+        ),
+        handled_by=result.get(
+            "handled_by"
+        ),
+        tool_used=result.get(
+            "tool_used"
+        ),
+        sources=result.get(
+            "sources",
+            [],
+        ),
+    )
+    
+class AgentResumeRequest(BaseModel):
+    thread_id: str = Field(
+        min_length=1,
+        max_length=128,
+    )
+
+    approved: bool
+
+    note: str | None = Field(
+        default=None,
+        max_length=500,
     )

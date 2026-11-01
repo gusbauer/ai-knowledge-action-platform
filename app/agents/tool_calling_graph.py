@@ -1,5 +1,8 @@
 import json
 
+from app.agents.tools.cache_admin import (
+    clear_embedding_cache,
+)
 from langchain_core.messages import (
     AIMessage,
     HumanMessage,
@@ -106,6 +109,7 @@ def build_tool_calling_graph(
     tools = [
         get_system_info,
         search_knowledge,
+        clear_embedding_cache,
     ]
 
     model_with_tools = (
@@ -258,6 +262,18 @@ def build_tool_calling_graph(
 
         elif (
             "get_system_info"
+            in tool_names
+        ):
+            updates[
+                "route"
+            ] = "system"
+
+            updates[
+                "handled_by"
+            ] = "system"
+
+        elif (
+            "clear_embedding_cache"
             in tool_names
         ):
             updates[

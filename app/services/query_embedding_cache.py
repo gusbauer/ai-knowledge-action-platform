@@ -142,3 +142,18 @@ async def generate_cached_query_embeddings(
         for embedding in results
         if embedding is not None
     ]
+    
+async def clear_cached_query_embeddings(
+) -> int:
+    deleted = 0
+
+    async for key in (
+        redis_client.scan_iter(
+            match="query_embedding:*"
+        )
+    ):
+        deleted += await redis_client.delete(
+            key
+        )
+
+    return deleted

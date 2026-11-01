@@ -58,4 +58,20 @@ class AgentResponse(BaseModel):
 
     tool_used: str | None = None
 
-    sources: list[AgentSource]
+    sources: list[
+        AgentSource
+    ]
+
+
+class AgentResumeRequest(BaseModel):
+    thread_id: str = Field(
+        min_length=1,
+        max_length=128,
+    )
+
+    approved: bool
+
+    note: str | None = Field(
+        default=None,
+        max_length=500,
+    )
