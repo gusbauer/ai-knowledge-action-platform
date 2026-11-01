@@ -17,6 +17,7 @@ class FakeAgentGraph:
     async def ainvoke(
         self,
         state: dict,
+        config=None,
     ):
         return {
             "question": (
@@ -66,15 +67,24 @@ def test_agent_ask(
                 "question": (
                     "¿Qué versión tiene "
                     "el sistema?"
-                )
+                ),
+                "thread_id": (
+                    "test-thread-1"
+                ),
             },
         )
 
         assert (
-            response.status_code == 200
+            response.status_code
+            == 200
         )
 
         body = response.json()
+
+        assert (
+            body["thread_id"]
+            == "test-thread-1"
+        )
 
         assert (
             body["route"]

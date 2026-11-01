@@ -4,6 +4,10 @@ from typing import (
     TypedDict,
 )
 
+from langgraph.graph import (
+    MessagesState,
+)
+
 
 RouteName = Literal[
     "knowledge",
@@ -19,16 +23,9 @@ class AgentSourceState(TypedDict):
     content: str
 
 
-class AgentState(TypedDict):
+class AgentState(MessagesState):
     question: str
-    
-    routing_strategy: NotRequired[
-    str
-]
 
-    routing_reason: NotRequired[
-    str
-]
     limit: NotRequired[int]
 
     min_similarity: NotRequired[
@@ -53,4 +50,14 @@ class AgentState(TypedDict):
         list[AgentSourceState]
     ]
 
-    tool_used: NotRequired[str]
+    tool_used: NotRequired[
+        str | None
+    ]
+
+    routing_strategy: NotRequired[
+        str
+    ]
+
+    routing_reason: NotRequired[
+        str
+    ]

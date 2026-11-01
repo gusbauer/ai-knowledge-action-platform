@@ -1,5 +1,9 @@
 from typing import Protocol
 
+from langchain_core.messages import (
+    AIMessage,
+)
+
 from app.agents.routing_graph import (
     build_routing_graph,
     classify_question,
@@ -45,6 +49,7 @@ class QuestionRouter(Protocol):
 def build_agent_graph(
     rag_service: RAGAnswerService,
     router: QuestionRouter | None = None,
+    checkpointer=None,
 ):
     async def classifier_handler(
         state: AgentState,
@@ -115,6 +120,12 @@ def build_agent_graph(
             )
         )
 
+        answer_text = (
+            answer
+            if isinstance(answer, str)
+            else str(answer or "")
+        )
+
         sources: list[
             AgentSourceState
         ] = []
@@ -140,9 +151,14 @@ def build_agent_graph(
             )
 
         return {
-            "answer": answer,
+            "answer": answer_text,
             "sources": sources,
             "handled_by": "knowledge",
+            "messages": [
+                AIMessage(
+                    content=answer_text
+                )
+            ],
         }
 
     async def system_handler(
@@ -169,6 +185,11 @@ def build_agent_graph(
             "tool_used": (
                 "get_system_info"
             ),
+            "messages": [
+                AIMessage(
+                    content=answer
+                )
+            ],
         }
 
     return build_routing_graph(
@@ -181,4 +202,5 @@ def build_agent_graph(
         classifier_handler=(
             classifier_handler
         ),
+        checkpointer=checkpointer,
     )

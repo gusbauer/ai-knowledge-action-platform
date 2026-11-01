@@ -7,6 +7,8 @@ from fastapi import (
     status,
 )
 
+from uuid import uuid4
+
 from app.agents.dependencies import (
     get_agent_graph,
 )
@@ -76,15 +78,24 @@ async def ask_agent(
     for key, value in headers.items():
         response.headers[key] = value
 
+    thread_id = (
+    payload.thread_id
+    or uuid4().hex
+)
     result = await graph.ainvoke(
-        {
-            "question": payload.question,
-            "limit": payload.limit,
-            "min_similarity": (
-                payload.min_similarity
-            ),
+    {
+        "question": payload.question,
+        "limit": payload.limit,
+        "min_similarity": (
+            payload.min_similarity
+        ),
+    },
+    config={
+        "configurable": {
+        "thread_id": thread_id,
         }
-    )
+    },
+)
 
     return AgentResponse(
         question=payload.question,
@@ -93,6 +104,7 @@ async def ask_agent(
         handled_by=result[
             "handled_by"
         ],
+        thread_id=thread_id,
         tool_used=result.get(
             "tool_used"
         ),

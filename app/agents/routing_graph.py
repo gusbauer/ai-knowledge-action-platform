@@ -3,6 +3,9 @@ from collections.abc import (
     Callable,
 )
 
+from langchain_core.messages import (
+    HumanMessage,
+)
 from langgraph.graph import (
     END,
     START,
@@ -36,6 +39,22 @@ def normalize_question(
 
     return {
         "normalized_question": normalized,
+    }
+
+
+def record_question(
+    state: AgentState,
+) -> dict:
+    return {
+        "messages": [
+            HumanMessage(
+                content=state[
+                    "normalized_question"
+                ]
+            )
+        ],
+        "sources": [],
+        "tool_used": None,
     }
 
 
@@ -99,6 +118,7 @@ def build_routing_graph(
     classifier_handler: NodeHandler = (
         classify_question
     ),
+    checkpointer=None,
 ):
     builder = StateGraph(
         AgentState
@@ -107,6 +127,11 @@ def build_routing_graph(
     builder.add_node(
         "normalize_question",
         normalize_question,
+    )
+
+    builder.add_node(
+        "record_question",
+        record_question,
     )
 
     builder.add_node(
@@ -131,6 +156,11 @@ def build_routing_graph(
 
     builder.add_edge(
         "normalize_question",
+        "record_question",
+    )
+
+    builder.add_edge(
+        "record_question",
         "classify_question",
     )
 
@@ -157,7 +187,9 @@ def build_routing_graph(
         END,
     )
 
-    return builder.compile()
+    return builder.compile(
+        checkpointer=checkpointer
+    )
 
 
 routing_graph = (

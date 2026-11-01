@@ -2,6 +2,10 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
 )
+
+from langgraph.checkpoint.memory import (
+    InMemorySaver,
+)
 from app.services import rag_service
 from app.services.agent_router import (
     LLMQuestionRouter,
@@ -38,8 +42,12 @@ def get_agent_graph(
     router = LLMQuestionRouter(
     provider=OllamaProvider()
 )
-
+    agent_checkpointer = (
+    InMemorySaver()
+)
     return build_agent_graph(
     rag_service=rag_service,
     router=router,
+    checkpointer=agent_checkpointer
 )
+    

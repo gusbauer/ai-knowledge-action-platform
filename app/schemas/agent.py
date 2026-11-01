@@ -1,6 +1,9 @@
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import (
+    BaseModel,
+    Field,
+)
 
 
 class AgentRequest(BaseModel):
@@ -21,6 +24,12 @@ class AgentRequest(BaseModel):
         le=1.0,
     )
 
+    thread_id: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=128,
+    )
+
 
 class AgentSource(BaseModel):
     chunk_id: int
@@ -34,6 +43,8 @@ class AgentResponse(BaseModel):
     question: str
 
     answer: str
+
+    thread_id: str
 
     route: Literal[
         "knowledge",
