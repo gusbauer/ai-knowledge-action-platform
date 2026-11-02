@@ -2,16 +2,10 @@ from pydantic_settings import (
     BaseSettings,
     SettingsConfigDict,
 )
-frontend_origin: str = (
-    "http://localhost:4200"
-)
 
 class Settings(BaseSettings):
     app_name: str = (
         "AI Knowledge & Action Platform"
-    )
-    frontend_origin: str = (
-        "http://localhost:4200"
     )
 
     app_version: str = "0.1.0"
@@ -23,12 +17,20 @@ class Settings(BaseSettings):
     )
 
     environment: str = "development"
-    environment: str = "development"
 
     frontend_origin: str = (
-    "http://localhost:4200"
-)
+        "http://localhost:4200"
+    )
+
     database_url: str
+
+    llm_provider: str = "ollama"
+
+    groq_api_key: str | None = None
+
+    groq_model: str = (
+        "llama-3.1-8b-instant"
+    )
 
     ollama_base_url: str = (
         "http://localhost:11434"
@@ -53,6 +55,8 @@ class Settings(BaseSettings):
     )
 
     agent_mode: str = "tool_calling"
+    
+    agent_recursion_limit: int = 12
 
     langsmith_tracing: bool = False
 
@@ -79,7 +83,5 @@ class Settings(BaseSettings):
             "postgresql://",
             1,
         )
-
-    agent_recursion_limit: int = 12
 
 settings = Settings()
