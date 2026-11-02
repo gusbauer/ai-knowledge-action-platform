@@ -1,0 +1,204 @@
+:host {
+  display: block;
+
+  min-height: 100vh;
+
+  color: #edf3ff;
+
+  background: radial-gradient(circle at 70% 20%, #16244c, transparent 32%), #080c13;
+}
+
+.app-shell {
+  display: grid;
+
+  min-height: 100vh;
+
+  grid-template-columns: 240px 1fr;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+
+  padding: 26px 20px;
+
+  background: rgba(8, 12, 19, 0.94);
+
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand div:last-child {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand span {
+  color: #8390a6;
+
+  font-size: 0.78rem;
+}
+
+.logo {
+  display: grid;
+
+  width: 42px;
+  height: 42px;
+
+  place-items: center;
+
+  background: linear-gradient(135deg, #5a7cff, #7d5cff);
+
+  border-radius: 12px;
+
+  font-weight: 800;
+}
+
+nav {
+  display: grid;
+  gap: 8px;
+
+  margin-top: 48px;
+}
+
+nav a {
+  padding: 12px 14px;
+
+  color: #8c99ad;
+
+  border-radius: 10px;
+}
+
+nav a.active {
+  color: white;
+
+  background: #172033;
+}
+
+.stack {
+  display: grid;
+  gap: 7px;
+
+  margin-top: auto;
+
+  color: #758297;
+}
+
+.stack span {
+  margin-bottom: 6px;
+
+  font-size: 0.68rem;
+
+  letter-spacing: 0.14em;
+}
+
+main {
+  padding: 36px;
+}
+
+header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  margin-bottom: 28px;
+}
+
+header h1 {
+  margin: 7px 0 5px;
+
+  font-size: clamp(2rem, 4vw, 3.3rem);
+}
+
+header p {
+  margin: 0;
+
+  color: #8c9ab0;
+}
+
+.eyebrow {
+  color: #7696ff;
+
+  font-size: 0.7rem;
+  font-weight: 700;
+
+  letter-spacing: 0.15em;
+}
+
+.environment {
+  padding: 8px 12px;
+
+  color: #6be3ac;
+
+  background: rgba(52, 211, 153, 0.08);
+
+  border: 1px solid rgba(52, 211, 153, 0.22);
+
+  border-radius: 999px;
+
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.dashboard {
+  display: grid;
+  gap: 22px;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    300px;
+}
+
+.right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.architecture {
+  display: grid;
+  gap: 10px;
+
+  padding: 22px;
+
+  text-align: center;
+
+  background: rgba(13, 18, 28, 0.92);
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  border-radius: 20px;
+}
+
+.flow {
+  padding: 10px;
+
+  background: #171f2d;
+
+  border-radius: 10px;
+}
+
+@media (max-width: 1050px) {
+  .dashboard {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .app-shell {
+    display: block;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  main {
+    padding: 20px;
+  }
+}

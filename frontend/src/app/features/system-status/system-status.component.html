@@ -1,0 +1,69 @@
+<p>system-status works!</p>
+<section class="status-card">
+
+  <div class="status-header">
+
+    <div>
+      <span class="eyebrow">
+        INFRASTRUCTURE
+      </span>
+
+      <h3>
+        System status
+      </h3>
+    </div>
+
+    <span
+      class="status-dot"
+      [class.online]="online()"
+    ></span>
+
+  </div>
+
+
+  @if (health(); as state) {
+
+    <div class="status-row">
+
+      <span>API</span>
+      <strong>
+        {{ state.status }}
+      </strong>
+
+    </div>
+
+    <div class="status-row">
+
+      <span>PostgreSQL</span>
+      <strong>
+        {{ state.database }}
+      </strong>
+
+    </div>
+
+    <div class="status-row">
+
+      <span>Redis</span>
+      <strong>
+        {{ state.cache }}
+      </strong>
+
+    </div>
+
+  } @else {
+
+    <p class="offline">
+      Backend unavailable
+    </p>
+
+  }
+
+
+  <button
+    type="button"
+    (click)="refresh()"
+  >
+    Refresh
+  </button>
+
+</section>

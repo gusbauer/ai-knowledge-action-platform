@@ -1,4 +1,7 @@
-from typing import Literal
+from typing import (
+    Any,
+    Literal,
+)
 
 from pydantic import (
     BaseModel,
@@ -12,7 +15,7 @@ class AgentRequest(BaseModel):
         min_length=3,
         max_length=1000,
     )
-    
+
     limit: int = Field(
         default=5,
         ge=1,
@@ -31,7 +34,9 @@ class AgentRequest(BaseModel):
         max_length=128,
     )
 
-    @field_validator("question")
+    @field_validator(
+        "question"
+    )
     @classmethod
     def validate_question(
         cls,
@@ -57,27 +62,39 @@ class AgentSource(BaseModel):
 
 
 class AgentResponse(BaseModel):
-    question: str
-
-    answer: str
-
     thread_id: str
+
+    status: Literal[
+        "completed",
+        "interrupted",
+    ]
+
+    question: str | None = None
+
+    answer: str | None = None
 
     route: Literal[
         "knowledge",
         "system",
-    ]
+    ] | None = None
 
     handled_by: Literal[
         "knowledge",
         "system",
-    ]
+    ] | None = None
 
     tool_used: str | None = None
 
     sources: list[
         AgentSource
-    ]
+    ] = Field(
+        default_factory=list
+    )
+
+    interrupt: dict[
+        str,
+        Any,
+    ] | None = None
 
 
 class AgentResumeRequest(BaseModel):

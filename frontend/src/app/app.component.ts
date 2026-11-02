@@ -1,12 +1,18 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component } from '@angular/core';
+
+import { ChatPanelComponent } from './features/chat-panel/chat-panel.component';
+
+import { SystemStatusComponent } from './features/system-status/system-status.component';
 
 @Component({
-  imports: [RouterOutlet],
   selector: 'app-root',
-  styleUrl: './app.component.scss',
+
+  standalone: true,
+
+  imports: [ChatPanelComponent, SystemStatusComponent],
+
   templateUrl: './app.component.html',
+
+  styleUrl: './app.component.scss',
 })
-export class App {
-  protected readonly title = signal('frontend');
-}
+export class AppComponent {}

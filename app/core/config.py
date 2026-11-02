@@ -2,11 +2,16 @@ from pydantic_settings import (
     BaseSettings,
     SettingsConfigDict,
 )
-
+frontend_origin: str = (
+    "http://localhost:4200"
+)
 
 class Settings(BaseSettings):
     app_name: str = (
         "AI Knowledge & Action Platform"
+    )
+    frontend_origin: str = (
+        "http://localhost:4200"
     )
 
     app_version: str = "0.1.0"
@@ -18,7 +23,11 @@ class Settings(BaseSettings):
     )
 
     environment: str = "development"
+    environment: str = "development"
 
+    frontend_origin: str = (
+    "http://localhost:4200"
+)
     database_url: str
 
     ollama_base_url: str = (

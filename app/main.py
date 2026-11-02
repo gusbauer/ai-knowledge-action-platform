@@ -4,7 +4,9 @@ from fastapi import FastAPI
 from langgraph.checkpoint.postgres.aio import (
     AsyncPostgresSaver,
 )
-
+from fastapi.middleware.cors import (
+    CORSMiddleware,
+)
 from app.core.tracing import (
     configure_ai_tracing,
 )
@@ -66,7 +68,15 @@ app = FastAPI(
     description=settings.app_description,
     lifespan=lifespan,
 )
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        settings.frontend_origin,
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 register_exception_handlers(app)
 

@@ -1,0 +1,215 @@
+<section class="chat-card">
+
+  <div class="chat-header">
+
+    <div>
+      <span class="eyebrow">
+        AI AGENT
+      </span>
+
+      <h2>
+        Knowledge Assistant
+      </h2>
+    </div>
+
+    <button
+      class="secondary-button"
+      type="button"
+      (click)="newConversation()"
+    >
+      New thread
+    </button>
+
+  </div>
+
+
+  <div class="conversation">
+
+    @if (messages().length === 0) {
+
+      <div class="empty-state">
+
+        <div class="empty-icon">
+          ✦
+        </div>
+
+        <h3>
+          Ask your knowledge platform
+        </h3>
+
+        <p>
+          Query documents, system
+          information or agent tools.
+        </p>
+
+      </div>
+
+    }
+
+
+    @for (
+      message of messages();
+      track $index
+    ) {
+
+      <article
+        class="message"
+        [class.user]="
+          message.role === 'user'
+        "
+      >
+
+        <span class="message-role">
+          {{
+            message.role
+              === 'user'
+              ? 'YOU'
+              : 'AI'
+          }}
+        </span>
+
+        <p>
+          {{ message.content }}
+        </p>
+
+
+        @if (
+          message.sources?.length
+        ) {
+
+          <div class="sources">
+
+            <span class="sources-title">
+              Sources
+            </span>
+
+            @for (
+              source of message.sources;
+              track source.chunk_id
+            ) {
+
+              <div class="source-card">
+
+                <div
+                  class="source-meta"
+                >
+                  Document
+                  {{ source.document_id }}
+
+                  · Chunk
+                  {{ source.position }}
+
+                  ·
+                  {{
+                    source.similarity
+                      | percent:'1.0-0'
+                  }}
+                </div>
+
+                <p>
+                  {{ source.content }}
+                </p>
+
+              </div>
+
+            }
+
+          </div>
+
+        }
+
+      </article>
+
+    }
+
+
+    @if (loading()) {
+
+      <div class="thinking">
+        <span></span>
+        <span></span>
+        <span></span>
+
+        Agent is thinking
+      </div>
+
+    }
+
+
+    @if (pendingApproval()) {
+
+      <div class="approval-card">
+
+        <span class="warning">
+          ⚠ HUMAN APPROVAL REQUIRED
+        </span>
+
+        <h3>
+          Sensitive action requested
+        </h3>
+
+        <p>
+          The agent has paused the
+          workflow until you approve
+          or reject the action.
+        </p>
+
+        <div class="approval-actions">
+
+          <button
+            class="danger-button"
+            type="button"
+            (click)="reject()"
+          >
+            Reject
+          </button>
+
+          <button
+            class="primary-button"
+            type="button"
+            (click)="approve()"
+          >
+            Approve
+          </button>
+
+        </div>
+
+      </div>
+
+    }
+
+  </div>
+
+
+  <form
+    class="composer"
+    (ngSubmit)="send()"
+  >
+
+    <textarea
+      [(ngModel)]="question"
+      name="question"
+      placeholder="Ask something..."
+      rows="2"
+    ></textarea>
+
+    <button
+      class="primary-button"
+      type="submit"
+      [disabled]="loading()"
+    >
+      Send
+    </button>
+
+  </form>
+
+
+  @if (threadId()) {
+
+    <div class="thread">
+      Thread {{ threadId() }}
+    </div>
+
+  }
+
+</section>
