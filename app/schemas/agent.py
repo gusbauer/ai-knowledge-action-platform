@@ -3,6 +3,7 @@ from typing import Literal
 from pydantic import (
     BaseModel,
     Field,
+    field_validator,
 )
 
 
@@ -11,7 +12,7 @@ class AgentRequest(BaseModel):
         min_length=3,
         max_length=1000,
     )
-
+    
     limit: int = Field(
         default=5,
         ge=1,
@@ -29,6 +30,22 @@ class AgentRequest(BaseModel):
         min_length=1,
         max_length=128,
     )
+
+    @field_validator("question")
+    @classmethod
+    def validate_question(
+        cls,
+        value: str,
+    ) -> str:
+        normalized = value.strip()
+
+        if len(normalized) < 3:
+            raise ValueError(
+                "Question must contain "
+                "at least 3 characters."
+            )
+
+        return normalized
 
 
 class AgentSource(BaseModel):

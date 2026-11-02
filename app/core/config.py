@@ -71,5 +71,6 @@ class Settings(BaseSettings):
             1,
         )
 
+    agent_recursion_limit: int = 12
 
 settings = Settings()

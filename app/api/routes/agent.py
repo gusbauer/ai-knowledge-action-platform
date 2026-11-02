@@ -25,6 +25,14 @@ from app.services.rate_limiter import (
     check_rag_rate_limit,
 )
 
+from langgraph.errors import (
+    GraphRecursionError,
+)
+
+from app.core.errors import (
+    AgentExecutionError,
+)
+
 
 class AgentResumeRequest(BaseModel):
     thread_id: str = Field(
@@ -106,6 +114,9 @@ async def ask_agent(
         "configurable": {
             "thread_id": thread_id,
         },
+        "recursion_limit": (
+            settings.agent_recursion_limit
+        ),
         "run_name": "agent_request",
         "tags": [
             "agent",
@@ -119,16 +130,21 @@ async def ask_agent(
         },
     }
 
-    result = await graph.ainvoke(
-        {
-            "question": payload.question,
-            "limit": payload.limit,
-            "min_similarity": (
-                payload.min_similarity
-            ),
-        },
-        config=config,
-    )
+    try:
+        result = await graph.ainvoke(
+            {
+                "question": payload.question,
+                "limit": payload.limit,
+                "min_similarity": (
+                    payload.min_similarity
+                ),
+            },
+            config=config,
+        )
+    except GraphRecursionError as exc:
+        raise AgentExecutionError(
+            "Agent execution failed due to recursion limit."
+        ) from exc
 
     interrupts = result.get(
         "__interrupt__",
@@ -181,6 +197,9 @@ async def resume_agent(
                 payload.thread_id
             ),
         },
+        "recursion_limit": (
+            settings.agent_recursion_limit
+        ),
         "run_name": "agent_resume",
         "tags": [
             "agent",
@@ -196,17 +215,22 @@ async def resume_agent(
         },
     }
 
-    result = await graph.ainvoke(
-        Command(
-            resume={
-                "approved": (
-                    payload.approved
-                ),
-                "note": payload.note,
-            }
-        ),
-        config=config,
-    )
+    try:
+        result = await graph.ainvoke(
+            Command(
+                resume={
+                    "approved": (
+                        payload.approved
+                    ),
+                    "note": payload.note,
+                }
+            ),
+            config=config,
+        )
+    except GraphRecursionError as exc:
+        raise AgentExecutionError(
+            "Agent execution failed due to recursion limit."
+        ) from exc
 
     interrupts = result.get(
         "__interrupt__",
