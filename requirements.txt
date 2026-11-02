@@ -2,7 +2,7 @@ fastapi
 uvicorn[standard]
 pydantic
 pydantic-settings
-sqlalchemy
+sqlalchemy[asyncio]
 python-multipart
 pypdf
 alembic
@@ -13,6 +13,6 @@ redis
 prometheus-client
 langgraph==1.2.19
 langchain-ollama==1.1.0
-AGENT_MODE=tool_calling
 langgraph-checkpoint-postgres==3.2.0
 langsmith==0.14.16
+psycopg[binary]
