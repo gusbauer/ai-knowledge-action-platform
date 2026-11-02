@@ -228,15 +228,11 @@ The pipeline checks Python compilation, linting, automated tests, Angular produc
 
 ### Dashboard
 
-![Dashboard](docs/screenshots/dashboard.png)
+![AI Knowledge & Action Platform Dashboard](docs/screenshots/dashboard.png)
 
-### RAG with Sources
+### Automated Test Suite
 
-![RAG Sources](docs/screenshots/rag-sources.png)
-
-### Human Approval
-
-![Human Approval](docs/screenshots/human-approval.png)
+![53 passing backend tests](docs/screenshots/tests.png)
 
 ## What This Project Demonstrates
 
