@@ -1,16 +1,69 @@
 services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai_platform_api
+    environment:
+      DATABASE_URL: ${DOCKER_DATABASE_URL:-postgresql+psycopg://ai_platform:ai_platform_dev@db:5432/ai_platform}
+      REDIS_URL: redis://redis:6379/0
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen3.5:4b}
+      AGENT_MODE: ${AGENT_MODE:-tool_calling}
+      AGENT_RECURSION_LIMIT: ${AGENT_RECURSION_LIMIT:-12}
+      LANGSMITH_TRACING: ${LANGSMITH_TRACING:-false}
+      LANGSMITH_PROJECT: ${LANGSMITH_PROJECT:-ai-knowledge-action-platform}
+      LANGSMITH_API_KEY: ${LANGSMITH_API_KEY:-}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/live')",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: ai-platform-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   db_test:
     image: pgvector/pgvector:pg16
     container_name: ai-platform-postgres-test
-
     environment:
       POSTGRES_DB: ai_platform_test
       POSTGRES_USER: ai_platform_test
       POSTGRES_PASSWORD: ai_platform_test
-
     ports:
       - "5433:5432"
-
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ai_platform_test -d ai_platform_test"]
       interval: 5s
@@ -20,38 +73,13 @@ services:
   redis:
     image: redis:8-alpine
     container_name: ai-platform-redis
-
     ports:
       - "6379:6379"
-
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
-
-    restart: unless-stopped
-  db:
-    image: pgvector/pgvector:pg16
-    container_name: ai-platform-postgres
-
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-
-    ports:
-      - "5432:5432"
-
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
     restart: unless-stopped
 
 volumes:
