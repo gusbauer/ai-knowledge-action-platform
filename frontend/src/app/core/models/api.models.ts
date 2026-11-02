@@ -5,7 +5,13 @@ export interface AgentSource {
   similarity: number;
   content: string;
 }
-
+export interface DocumentItem {
+  id: number;
+  filename: string;
+  content_type: string | null;
+  size_bytes: number;
+  created_at: string;
+}
 export interface AgentRequest {
   question: string;
   thread_id?: string;

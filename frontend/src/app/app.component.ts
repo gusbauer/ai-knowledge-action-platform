@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 
 import { ChatPanelComponent } from './features/chat-panel/chat-panel.component';
-
+import { DocumentPanelComponent } from './features/document-panel/document-panel.component';
 import { SystemStatusComponent } from './features/system-status/system-status.component';
 
 @Component({
@@ -9,7 +9,7 @@ import { SystemStatusComponent } from './features/system-status/system-status.co
 
   standalone: true,
 
-  imports: [ChatPanelComponent, SystemStatusComponent],
+  imports: [ChatPanelComponent, DocumentPanelComponent, SystemStatusComponent],
 
   templateUrl: './app.component.html',
 

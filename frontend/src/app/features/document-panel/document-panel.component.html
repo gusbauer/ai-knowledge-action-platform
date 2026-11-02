@@ -1,0 +1,103 @@
+<section class="document-card">
+
+  <div class="header">
+
+    <div>
+
+      <span class="eyebrow">
+        KNOWLEDGE BASE
+      </span>
+
+      <h3>
+        Documents
+      </h3>
+
+    </div>
+
+
+    <label class="upload-button">
+
+      @if (uploading()) {
+        Uploading...
+      } @else {
+        + Upload
+      }
+
+      <input
+        type="file"
+        accept=".pdf,.txt,.md"
+        [disabled]="uploading()"
+        (change)="selectFile($event)"
+      >
+
+    </label>
+
+  </div>
+
+
+  @if (error()) {
+
+    <div class="error">
+      {{ error() }}
+    </div>
+
+  }
+
+
+  @if (loading()) {
+
+    <p class="muted">
+      Loading knowledge base...
+    </p>
+
+  } @else {
+
+    <div class="documents">
+
+      @for (
+        document of documents();
+        track document.id
+      ) {
+
+        <article class="document">
+
+          <div class="document-icon">
+            ▤
+          </div>
+
+          <div class="document-info">
+
+            <strong>
+              {{ document.filename }}
+            </strong>
+
+            <span>
+              {{ formatSize(
+                document.size_bytes
+              ) }}
+
+              ·
+
+              {{
+                document.created_at
+                | date:'mediumDate'
+              }}
+            </span>
+
+          </div>
+
+        </article>
+
+      } @empty {
+
+        <div class="empty">
+          No documents uploaded yet.
+        </div>
+
+      }
+
+    </div>
+
+  }
+
+</section>

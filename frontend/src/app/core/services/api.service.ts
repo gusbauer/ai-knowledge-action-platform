@@ -1,7 +1,5 @@
 import { Injectable } from '@angular/core';
-
 import { HttpClient } from '@angular/common/http';
-
 import { Observable } from 'rxjs';
 
 import {
@@ -9,6 +7,7 @@ import {
   AgentResponse,
   AgentResumeRequest,
   HealthReadyResponse,
+  DocumentItem,
 } from '../models/api.models';
 
 @Injectable({
@@ -18,6 +17,17 @@ export class ApiService {
   private readonly baseUrl = 'http://127.0.0.1:8000';
 
   constructor(private readonly http: HttpClient) {}
+
+  listDocuments(): Observable<DocumentItem[]> {
+    return this.http.get<DocumentItem[]>(`${this.baseUrl}/documents`);
+  }
+
+  uploadDocument(file: File): Observable<DocumentItem> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return this.http.post<DocumentItem>(`${this.baseUrl}/documents/upload`, formData);
+  }
 
   askAgent(request: AgentRequest): Observable<AgentResponse> {
     return this.http.post<AgentResponse>(`${this.baseUrl}/agent/ask`, request);
